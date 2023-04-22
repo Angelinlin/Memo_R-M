@@ -1,3 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.flip {
+  transform: rotateY(180deg);
+  z-index: 10;
+}
+
 :root {
   --max-width: 1100px;
   --border-radius: 12px;

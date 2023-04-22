@@ -1,11 +1,64 @@
 import Head from 'next/head'
-import Image from 'next/image'
 import { Inter } from 'next/font/google'
-import styles from '@/styles/Home.module.css'
+import { use, useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
+  
+  const [manejoStart , setManejoStart] = useState(false);
+  const [character, setCharacter] = useState([]);
+  const [randomCharact, setRandomCharact] = useState([]);
+  const [manejoFlip, setManejoFlip] = useState(true);
+
+  const manejStart = () => {
+    setManejoStart(true)
+  }
+
+  const manejFlip = () => {
+    setManejoFlip(false)
+  }
+
+  const baraja = (array) => {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return setRandomCharact(array);
+  }
+
+  const getRickAndMortyCharacters = async() => {
+    const characterArr = [];
+    for(let i = 1; i <= 9; i++){
+      const rdm = Math.floor(Math.random() * 826);
+    const data = await fetch(`https://rickandmortyapi.com/api/character/${rdm}`, 
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const res = await data.json();
+    // if (data === false) para retornar loader
+    // {
+    //   return (
+    //     <div>
+
+    //     </div>
+    //   )
+    // }
+    characterArr.push(res);
+  };
+  setCharacter(characterArr);
+  baraja(characterArr)
+  }
+
+
+  const primerClick = () => {
+    manejFlip();
+    console.log("first click")
+  }
+
   return (
     <>
       <Head>
@@ -14,110 +67,72 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
-        <div className={styles.description}>
-          <p>
-            Get started by editing&nbsp;
-            <code className={styles.code}>src/pages/index.js</code>
-          </p>
-          <div>
-            <a
-              href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              By{' '}
-              <Image
-                src="/vercel.svg"
-                alt="Vercel Logo"
-                className={styles.vercelLogo}
-                width={100}
-                height={24}
-                priority
-              />
-            </a>
-          </div>
+
+      <div className={manejoStart ? 'w-full flex justify-center items-center py-6 ' : 'w-full h-[100%] absolute flex justify-center items-center py-6'}>
+        <button className='bg-green-500 rounded-md px-4 py-1 m-1 hover:bg-black absolute hover:border-white hover:border'
+        onClick={() => {
+          getRickAndMortyCharacters();
+          manejStart();
+        }}>
+          Empezar
+        </button>
+      </div>
+
+
+      <div className={manejoStart ? 'w-full h-1/2 flex items-center justify-center' : 'hidden'}>
+        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 text-center text-white h-1/2 w-[550px] sm:w-[550px] md:w-[650px] lg:w-[1000px]'>
+              {character.map((character) => (
+                <div key={character.id} id={"button-" + character.id} className={ manejoFlip ? 'w-max z-0 m-4 duration-1000' : 'w-max bg-green-400 m-4 duration-1000'}>
+                  <button onClick={primerClick}>
+                   <div className='border-2 py-6 rounded-md flex justify-center items-center flex-col h-[200px] w-[150px]'>
+                      <div className='p-2'>
+                        <img className='rounded-lg' src={character.image} height={125} width={125}/>
+                      </div>
+                     <div className='p-2 m-1 text-center text-xs'>
+                       <p className='break-words'>{character.name}</p>
+                    </div>
+                   </div>
+                  </button>
+                </div>
+              ))}
+              {randomCharact.map(randomCharact => (
+                <div key={randomCharact.id} id={"button-" + randomCharact.id + "-pair"} className={ manejoFlip ? 'w-max z-0 m-4 duration-1000' : 'w-max bg-green-400 m-4 duration-1000'}>
+                  <button onClick={primerClick} >
+                    <div className='border-2 py-6 rounded-md flex justify-center items-center flex-col h-[200px] w-[150px]'>
+                      <div className='p-2'>
+                        <img className='rounded-lg' src={randomCharact.image} height={125} width={125}/>
+                      </div>
+                      <div className='p-2 m-1 text-center text-xs'>
+                        <p className='break-words'>{randomCharact.name}</p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              ))}
         </div>
-
-        <div className={styles.center}>
-          <Image
-            className={styles.logo}
-            src="/next.svg"
-            alt="Next.js Logo"
-            width={180}
-            height={37}
-            priority
-          />
-          <div className={styles.thirteen}>
-            <Image
-              src="/thirteen.svg"
-              alt="13"
-              width={40}
-              height={31}
-              priority
-            />
-          </div>
-        </div>
-
-        <div className={styles.grid}>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Docs <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Find in-depth information about Next.js features and&nbsp;API.
-            </p>
-          </a>
-
-          <a
-            href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Learn <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Learn about Next.js in an interactive course with&nbsp;quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Templates <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Discover and deploy boilerplate example Next.js&nbsp;projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <h2 className={inter.className}>
-              Deploy <span>-&gt;</span>
-            </h2>
-            <p className={inter.className}>
-              Instantly deploy your Next.js site to a shareable URL
-              with&nbsp;Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
+      </div>
     </>
-  )
+  );
 }
+
+// export async function getServerSideProps(context){
+//   const character = [];
+//   for(let i = 1; i <= 10; i++){
+//     const rdm = Math.floor(Math.random() * 826);
+
+//     const data = await fetch("https://rickandmortyapi.com/api/character/55", 
+//     {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//     });
+//     const res = await data.json();
+//     const character = [];
+//     character.push(res)
+//     setCharacter(character);
+  
+//   }
+
+//   return {props:{}};
+// }
