@@ -1,34 +1,46 @@
 import Head from 'next/head'
 import { Inter } from 'next/font/google'
-import { use, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   
-  const [manejoStart , setManejoStart] = useState(false);
-  const [character, setCharacter] = useState([]);
-  const [randomCharact, setRandomCharact] = useState([]);
-  const [manejoFlip, setManejoFlip] = useState(true);
+  const [manejoStart , setManejoStart] = useState(false); // Logic for start
+  const [character, setCharacter] = useState([]); // Array of the characters
+  const [randomCharacter, setRandomCharacter] = useState([]);
+  const [selectedCard, setSelectedCard] = useState([]); // Logic for card's flip
+  const [selectedPair, setSelectedPair] = useState([]);
+  const [matchedPairs, setMatchedPairs] = useState([]);
+  const [clicks, setClicks] = useState(0);
+  const howManyPairs = 9;
+
 
   const manejStart = () => {
-    setManejoStart(true)
+    setManejoStart(true);
+    setMatchedPairs([]);
+    setClicks(0);
   }
-
-  const manejFlip = () => {
-    setManejoFlip(false)
-  }
-
+  
+  
   const baraja = (array) => {
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
-    return setRandomCharact(array);
+    return ( 
+      setRandomCharacter([...array])
+    );
+  }
+
+  const clickCount = () => {
+    setClicks(clicks+1);
+    console.log(clicks)
   }
 
   const getRickAndMortyCharacters = async() => {
-    const characterArr = [];
+    let characterArr = [];
+
     for(let i = 1; i <= 9; i++){
       const rdm = Math.floor(Math.random() * 826);
     const data = await fetch(`https://rickandmortyapi.com/api/character/${rdm}`, 
@@ -39,25 +51,57 @@ export default function Home() {
       },
     });
     const res = await data.json();
-    // if (data === false) para retornar loader
+    // if (characterArr == [])
     // {
-    //   return (
-    //     <div>
-
+    //     return (
+    //       <div className='absolute w-full h-full flex justify-center items-center'>
+    //       <h1 className='text-2xl text-green-500'>Loading...</h1>
     //     </div>
-    //   )
+    //     )
     // }
     characterArr.push(res);
   };
   setCharacter(characterArr);
   baraja(characterArr)
   }
+  
 
+  const manageSelectedPair = (e) => {
+    clickCount();
+    e.preventDefault();
+    const id = e.target.id;
+    
+    selectedPair.push(id);
+    document.getElementById("button" + id)
+    
+    
+    if (selectedPair.length === 2) {
+      if (
+        selectedPair[0] == selectedPair[1] + "-pair" ||
+        selectedPair[1] == selectedPair[0] + "-pair"
+      ) {
+        setMatchedPairs([...matchedPairs, ...selectedPair]);
+      }
 
-  const primerClick = () => {
-    manejFlip();
-    console.log("first click")
+    console.log(
+      "🚀 ~ file: index.js ~ line 80 ~ manageSelectedPair ~ selectedPair",
+      selectedPair
+    );
+    console.log("🚀 ~ file: index.js ~ line 95 ~ manageSelectedPair ~ matchedPairs", matchedPairs)
+
   }
+}
+
+useEffect(() => { // Para retornar el flip de las cartas
+  if (selectedPair.length == 2) {
+    setSelectedPair([]);
+  }
+  if (selectedCard.length == 2){
+    setTimeout(() => {
+      setSelectedCard([]);
+    },750);
+  }
+}, [selectedCard]);
 
   return (
     <>
@@ -80,39 +124,56 @@ export default function Home() {
 
 
       <div className={manejoStart ? 'w-full h-1/2 flex items-center justify-center' : 'hidden'}>
-        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 text-center text-white h-1/2 w-[550px] sm:w-[550px] md:w-[650px] lg:w-[1000px]'>
-              {character.map((character) => (
-                <div key={character.id} id={"button-" + character.id} className={ manejoFlip ? 'w-max z-0 m-4 duration-1000' : 'w-max bg-green-400 m-4 duration-1000'}>
-                  <button onClick={primerClick}>
-                   <div className='border-2 py-6 rounded-md flex justify-center items-center flex-col h-[200px] w-[150px]'>
-                      <div className='p-2'>
-                        <img className='rounded-lg' src={character.image} height={125} width={125}/>
-                      </div>
-                     <div className='p-2 m-1 text-center text-xs'>
-                       <p className='break-words'>{character.name}</p>
+      {character.length >= howManyPairs && (
+        <div className='my-12 grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 text-center text-white h-1/2 w-[550px] sm:w-[550px] md:w-[650px] lg:w-[1000px]'>
+                {character.map((character) => (
+                  <button 
+                  key={character.id} 
+                  id={"button" + character.id}
+                  className='border-2 rounded-2xl border-white'
+                  onClick={manageSelectedPair}>
+                      {/*  manejoFlip  ? 'hidden' :  */}
+                      <div onClick={() => {setSelectedCard([...selectedCard, character.id])}} 
+                      className={ selectedCard.includes(character.id) || matchedPairs.includes(character.id + "")  ? "opacity-100 h-full w-full flex justify-center items-center":'opacity-0 transition duration-500 h-full w-full flex justify-center items-center'}>
+                        <div className='p-2'>
+                            <img 
+                              className='rounded-lg' 
+                              src={character.image} 
+                              height={125} width={125}
+                              alt=''
+                              id={character.id}
+                            />
+                        </div>
                     </div>
-                   </div>
                   </button>
-                </div>
               ))}
-              {randomCharact.map(randomCharact => (
-                <div key={randomCharact.id} id={"button-" + randomCharact.id + "-pair"} className={ manejoFlip ? 'w-max z-0 m-4 duration-1000' : 'w-max bg-green-400 m-4 duration-1000'}>
-                  <button onClick={primerClick} >
-                    <div className='border-2 py-6 rounded-md flex justify-center items-center flex-col h-[200px] w-[150px]'>
-                      <div className='p-2'>
-                        <img className='rounded-lg' src={randomCharact.image} height={125} width={125}/>
-                      </div>
-                      <div className='p-2 m-1 text-center text-xs'>
-                        <p className='break-words'>{randomCharact.name}</p>
-                      </div>
+              {randomCharacter.map((character) => (
+                  <button 
+                  key={character.id} 
+                  id={"button-" + character.id + "-pair"}
+                  className='border-2 rounded-2xl border-white' 
+                  onClick={manageSelectedPair}>
+                      {/*  manejoFlip  ? 'hidden' :  */}
+                      <div onClick={() => {setSelectedCard([...selectedCard, character.id + "-pair"])}} 
+                      className={ selectedCard.includes(character.id + "-pair") || matchedPairs.includes(character.id + "-pair")  ?  "opacity-100 h-full w-full flex justify-center items-center":'opacity-0 transition duration-500 h-full w-full flex justify-center items-center'}>
+                        <div className='p-2'>
+                            <img 
+                              className='rounded-lg' 
+                              src={character.image} 
+                              height={125} width={125}
+                              alt=''
+                              id={character.id + "-pair"}
+                            />
+                        </div>
                     </div>
                   </button>
-                </div>
               ))}
         </div>
+        )}
       </div>
     </>
   );
+  // className={ manejoFlip ? ' m-4 h-[200px] w-[150px]' : 'm-4 duration-1000 h-[200px] w-[150px]' }
 }
 
 // export async function getServerSideProps(context){
